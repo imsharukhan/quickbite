@@ -7,6 +7,7 @@ from app.auth.utils import decode_token
 from app.users.models import User
 from app.vendors.models import Vendor
 from app.config import settings
+import secrets
 
 security = HTTPBearer()
 
@@ -51,7 +52,7 @@ async def get_current_vendor(credentials: HTTPAuthorizationCredentials = Depends
     return vendor
 
 def get_current_admin(x_admin_key: str = Header(...)):
-    if x_admin_key != settings.ADMIN_SECRET_KEY:
+    if not secrets.compare_digest(x_admin_key.encode('utf-8'), settings.ADMIN_SECRET_KEY.encode('utf-8')):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin key")
     return True
 

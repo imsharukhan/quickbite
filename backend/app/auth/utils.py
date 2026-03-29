@@ -10,7 +10,9 @@ from app.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    if len(password) > 72:
+        raise ValueError("Password too long (max 72 characters)")
+    return pwd_context.hash(password.encode("utf-8").decode("utf-8"))
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)

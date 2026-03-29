@@ -29,8 +29,6 @@ async def register(data: schemas.StudentRegister, background_tasks: BackgroundTa
         raise HTTPException(status_code=400, detail="Register number already registered")
 
     if data.email:
-        if not data.email.endswith(f"@{settings.COLLEGE_EMAIL_DOMAIN}"):
-            raise HTTPException(status_code=400, detail=f"Email must end with @{settings.COLLEGE_EMAIL_DOMAIN}")
         existing_email = await service.get_user_by_email(db, data.email)
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already registered")

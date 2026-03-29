@@ -18,6 +18,8 @@ class Order(Base):
     payment_status: Mapped[str] = mapped_column(String(50), default="pending")
     payment_confirmed_by_vendor: Mapped[bool] = mapped_column(Boolean, default=False)
     cancellation_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    payment_gateway_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
     placed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
