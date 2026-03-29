@@ -26,15 +26,12 @@ export default function HomePage({ navigate }) {
 
   return (
     <div className="home-page pb-section">
-      <div className="search-section" style={{ position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundImage: 'url("https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15 }}></div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1 className="greeting">Cravings? Fast.</h1>
-          <p className="subtitle">Pre-order from campus cafeterias</p>
-          <div className="search-bar">
-            <span>🔍</span>
-            <input type="text" placeholder="Search food, outlets..." />
-          </div>
+      <div className="search-section" style={{ background: "linear-gradient(135deg, var(--primary-bg) 0%, #FFF3E0 100%)" }}>
+        <h1 className="greeting">Cravings? Fast.</h1>
+        <p className="subtitle">Pre-order from campus cafeterias</p>
+        <div className="search-bar">
+          <span>🔍</span>
+          <input type="text" placeholder="Search food, outlets..." />
         </div>
       </div>
       <div className="section-header">
