@@ -7,15 +7,13 @@ const CATEGORIES = ['All', 'Breakfast', 'Rice & Meals', 'Breads & Rotis', 'Snack
  
 // ── Category image map ──────────────────────────────────────────────
 // Place your images inside /public/categories/
-// Filename must match exactly. Fallback = other.png
-const CATEGORY_IMAGE = {
-  'Breakfast':         '/categories/breakfast.jpg',
-  'Rice & Meals':      '/categories/rice_meals.jpg',
-  'Breads & Rotis':    '/categories/breads_rotis.jpg',
-  'Snacks & Starters': '/categories/snacks_starters.jpg',
-  'Desserts & Sweets': '/categories/desserts_sweets.jpg',
-  'Drinks & Beverages':'/categories/drinks_beverages.jpg',
-  'Other':             '/categories/other.png',
+const VALID_IMAGES = ['breakfast', 'rice_meals', 'breads_rotis', 'snacks_starters', 'desserts_sweets', 'drinks_beverages'];
+const getCategoryImg = (catName) => {
+  if (!catName || catName.toLowerCase() === 'all') return '/categories/other.png';
+  const cleanName = catName.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+  return VALID_IMAGES.includes(cleanName) 
+    ? `/categories/${cleanName}.png` 
+    : '/categories/other.png';
 };
 const FALLBACK_IMAGE = '/categories/other.png';
  
@@ -145,12 +143,12 @@ export default function MenuPage({ outlet, navigate, showToast }) {
         {/* Category Pills with images */}
         {!loading && (
           <div style={{
-            display: 'flex', gap: '10px', overflowX: 'auto',
+            display: 'flex', gap: '24px', overflowX: 'auto',
             paddingBottom: '16px', scrollbarWidth: 'none', marginBottom: '4px',
           }}>
             {CATEGORIES.map(cat => {
               const isActive = activeCategory === cat;
-              const imgSrc = cat === 'All' ? null : (CATEGORY_IMAGE[cat] || FALLBACK_IMAGE);
+              const imgSrc = cat === 'All' ? null : getCategoryImg(cat);
               return (
                 <button
                   key={cat}
@@ -158,7 +156,9 @@ export default function MenuPage({ outlet, navigate, showToast }) {
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
                     gap: '6px', flexShrink: 0, cursor: 'pointer', background: 'none',
-                    border: 'none', padding: '4px 2px',
+                    border: 'none', padding: '4px 2px', minWidth: '80px',
+                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'transform 0.2s',
                   }}
                 >
                   {/* Image circle or All pill */}
@@ -188,10 +188,10 @@ export default function MenuPage({ outlet, navigate, showToast }) {
                         />
                       </div>
                       <span style={{
-                        fontSize: '0.68rem', fontWeight: isActive ? 700 : 500,
+                        fontSize: '0.7rem', fontWeight: isActive ? 700 : 500,
                         color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                        whiteSpace: 'nowrap', maxWidth: '68px',
-                        textAlign: 'center', lineHeight: 1.3,
+                        whiteSpace: 'normal', maxWidth: '80px',
+                        textAlign: 'center', lineHeight: 1.2,
                         transition: 'color 0.18s',
                       }}>{cat}</span>
                     </>
@@ -238,7 +238,7 @@ export default function MenuPage({ outlet, navigate, showToast }) {
             <div className="menu-grid">
               {filteredItems.map(item => {
                 const inCart = cart.find(ci => ci.id === item.id);
-                const imgSrc = CATEGORY_IMAGE[item.category] || FALLBACK_IMAGE;
+                const imgSrc = getCategoryImg(item.category);
                 return (
                   <div key={item.id} style={{
                     background: 'var(--bg-white)', border: '1px solid var(--border-light)',
@@ -351,23 +351,27 @@ export default function MenuPage({ outlet, navigate, showToast }) {
  
       {/* View Cart Bar */}
       {cartCount > 0 && (
-        <div onClick={() => navigate('cart')} style={{
-          position: 'fixed', bottom: '0', left: '0', right: '0',
-          background: 'var(--primary)', color: 'white', padding: '14px 24px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          cursor: 'pointer', boxShadow: '0 -4px 16px rgba(252,128,25,0.3)', zIndex: 100,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.25)', borderRadius: 'var(--radius-sm)', padding: '4px 10px', fontSize: '0.82rem', fontWeight: 700 }}>
-              {cartCount} {cartCount === 1 ? 'item' : 'items'}
+        <>
+          <style>{`
+            .mobile-cart-bar { display: none !important; }
+            @media (max-width: 768px) {
+              .mobile-cart-bar { display: flex !important; }
+            }
+          `}</style>
+          <div className="mobile-cart-bar" onClick={() => navigate('cart')} style={{
+            position: 'fixed', bottom: '0', left: '0', right: '0',
+            background: 'var(--primary)', color: 'white', padding: '16px 24px',
+            alignItems: 'center', justifyContent: 'space-between',
+            cursor: 'pointer', boxShadow: '0 -4px 10px rgba(0,0,0,0.1)', zIndex: 100,
+          }}>
+            <div style={{ fontSize: '1rem', fontWeight: 700 }}>
+              {cartCount} Items | ₹{cartTotal}
             </div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>View Cart</span>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>
+              VIEW CART →
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 700 }}>₹{cartTotal}</span>
-            <span style={{ fontSize: '1.1rem' }}>→</span>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -17,15 +17,13 @@ const CATEGORY_EMOJI = {
   'Drinks & Beverages': '🥤', 'Other': '🍽️',
 };
  
-// ── Same map as MenuPage — keep in sync ─────────────────────────────
-const CATEGORY_IMAGE = {
-  'Breakfast':          '/categories/breakfast.jpg',
-  'Rice & Meals':       '/categories/rice_meals.jpg',
-  'Breads & Rotis':     '/categories/breads_rotis.jpg',
-  'Snacks & Starters':  '/categories/snacks_starters.jpg',
-  'Desserts & Sweets':  '/categories/desserts_sweets.jpg',
-  'Drinks & Beverages': '/categories/drinks_beverages.jpg',
-  'Other':              '/categories/other.png',
+const VALID_IMAGES = ['breakfast', 'rice_meals', 'breads_rotis', 'snacks_starters', 'desserts_sweets', 'drinks_beverages'];
+const getCategoryImg = (catName) => {
+  if (!catName || catName.toLowerCase() === 'all') return '/categories/other.png';
+  const cleanName = catName.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
+  return VALID_IMAGES.includes(cleanName) 
+    ? `/categories/${cleanName}.png` 
+    : '/categories/other.png';
 };
 const FALLBACK_IMAGE = '/categories/other.png';
  
@@ -50,14 +48,20 @@ export default function VendorDashboard({ showToast }) {
  
     const { lastMessage } = useWebSocket('vendor', user?.id);
  
-    useEffect(() => {
-        if (!user) return;
+    const loadOutlets = () => {
         outletManagementService.getMyOutlets().then(data => {
             const myOutlets = data.filter(o => o.vendor_id === user.id);
             setOutlets(myOutlets);
-            if (myOutlets.length > 0) setSelectedOutlet(myOutlets[0]);
-            else setLoading(false);
+            if (!selectedOutlet && myOutlets.length > 0) setSelectedOutlet(myOutlets[0]);
+            if (myOutlets.length === 0) setLoading(false);
         });
+    };
+    
+    useEffect(() => {
+        if (!user) return;
+        loadOutlets();
+        const interval = setInterval(loadOutlets, 60000);
+        return () => clearInterval(interval);
     }, [user]);
  
     const loadOutletData = async () => {
@@ -228,7 +232,7 @@ export default function VendorDashboard({ showToast }) {
     };
  
     // Current category image for preview in add-item form
-    const previewImg = CATEGORY_IMAGE[newItem.category] || FALLBACK_IMAGE;
+    const previewImg = getCategoryImg(newItem.category);
  
     return (
         <div style={{ maxWidth: '780px', margin: '0 auto', padding: '70px 12px 40px' }}>
@@ -423,7 +427,7 @@ export default function VendorDashboard({ showToast }) {
                                 <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'none' }}>
                                     {MENU_CATEGORIES.map(cat => {
                                         const isSelected = newItem.category === cat;
-                                        const img = CATEGORY_IMAGE[cat] || FALLBACK_IMAGE;
+                                        const img = getCategoryImg(cat);
                                         return (
                                             <button
                                                 key={cat}
@@ -513,7 +517,7 @@ export default function VendorDashboard({ showToast }) {
                         <div key={category} style={{ marginBottom: '20px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                 <img
-                                    src={CATEGORY_IMAGE[category] || FALLBACK_IMAGE}
+                                    src={getCategoryImg(category)}
                                     alt={category}
                                     onError={e => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                     style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
@@ -528,7 +532,7 @@ export default function VendorDashboard({ showToast }) {
                                         {/* Category thumbnail */}
                                         <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
                                             <img
-                                                src={CATEGORY_IMAGE[item.category] || FALLBACK_IMAGE}
+                                                src={getCategoryImg(item.category)}
                                                 alt={item.category}
                                                 onError={e => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}

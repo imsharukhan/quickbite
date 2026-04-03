@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
+from pydantic import BaseModel, model_validator
+import pytz
+
+IST = pytz.timezone('Asia/Kolkata')
 
 class OutletCreate(BaseModel):
     vendor_id: UUID
@@ -39,6 +43,18 @@ class OutletResponse(BaseModel):
     slot_duration_minutes: int
     image_url: Optional[str]
     created_at: datetime
+    
+    @model_validator(mode='after')
+    def sync_ist_time(self):
+        try:
+            # Only apply timeframe constraints if the vendor manually marked it 'open'
+            if self.is_open and self.opening_time and self.closing_time:
+                now_str = datetime.now(IST).strftime("%H:%M")
+                if not (self.opening_time <= now_str <= self.closing_time):
+                    self.is_open = False
+        except Exception:
+            pass
+        return self
 
 class TimeSlotResponse(BaseModel):
     time: str

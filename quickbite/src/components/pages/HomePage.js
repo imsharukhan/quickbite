@@ -37,7 +37,7 @@ export default function HomePage({ navigate }) {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const filters = ['All', 'Open Now', 'South Indian', 'North Indian', 'Fast Food', 'Snacks', 'Beverages'];
+  const filters = ['All', 'Open Now', 'Closed'];
 
   const fetchOutlets = async () => {
     setLoading(true);
@@ -52,7 +52,11 @@ export default function HomePage({ navigate }) {
     }
   };
 
-  useEffect(() => { fetchOutlets(); }, []);
+  useEffect(() => { 
+    fetchOutlets(); 
+    const interval = setInterval(fetchOutlets, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filtered = outlets.filter(o => {
     const matchSearch = !search ||
@@ -61,7 +65,7 @@ export default function HomePage({ navigate }) {
     const matchFilter =
       activeFilter === 'All' ? true :
       activeFilter === 'Open Now' ? o.is_open :
-      (o.cuisine || '').toLowerCase().includes(activeFilter.toLowerCase());
+      activeFilter === 'Closed' ? !o.is_open : true;
     return matchSearch && matchFilter;
   });
 
@@ -121,7 +125,7 @@ export default function HomePage({ navigate }) {
             className={`category-pill ${activeFilter === f ? 'active' : ''}`}
             onClick={() => setActiveFilter(f)}
           >
-            {f === 'Open Now' ? '🟢 ' : ''}{f}
+            {f === 'Open Now' ? '🟢 ' : (f === 'Closed' ? '🔴 ' : '')}{f}
           </button>
         ))}
       </div>
