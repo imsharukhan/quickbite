@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 api.interceptors.request.use(
@@ -68,7 +68,7 @@ api.interceptors.response.use(
               return reject({ response: { status: 401 } });
             }
             
-            axios.post(`http://localhost:8000/api/auth/refresh`, {
+            axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`, {
               refresh_token: refreshToken
             }).then(({ data }) => {
               localStorage.setItem('qb_token', data.access_token);
