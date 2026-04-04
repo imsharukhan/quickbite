@@ -125,15 +125,27 @@ from app.admin.router import router as admin_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from app.database import engine, Base
+    from sqlalchemy import text
     try:
         async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
+            # 1. Create the Tables
             await conn.run_sync(Base.metadata.create_all)
-        print("Database Initialize Complete")
+            
+            # 2. Force-Insert the 3 Canteens so they are ALWAYS there
+            # We use 'ON CONFLICT' so it doesn't error if they already exist
+            await conn.execute(text("""
+                INSERT INTO outlets (id, name, description, is_open) 
+                VALUES 
+                (1, 'Dimora Central', 'Main Academic Block', true),
+                (2, 'Reenu Food Court', 'Near Library', true),
+                (3, 'Bhojan Express', 'Hospital Block', true)
+                ON CONFLICT (id) DO UPDATE SET 
+                    name = EXCLUDED.name,
+                    description = EXCLUDED.description;
+            """))
+        print("✅ Success: Canteens are LIVE in the Database!")
     except Exception as e:
-        print(f"Database Initialize Failed: {e}")
-
-    # await seed_data()
+        print(f"❌ Database Error: {e}")
     yield
 
 app = FastAPI(title="QuickBite API", lifespan=lifespan)
