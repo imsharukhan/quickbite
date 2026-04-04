@@ -133,7 +133,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Database Initialize Failed: {e}")
 
-    await seed_data()
+    # await seed_data()
     yield
 
 app = FastAPI(title="QuickBite API", lifespan=lifespan)
