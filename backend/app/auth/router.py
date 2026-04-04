@@ -135,30 +135,29 @@ async def reset_password(data: schemas.ResetPassword, db: AsyncSession = Depends
 
 @router.post("/login", response_model=schemas.TokenResponse)
 async def login(data: schemas.UserLogin, db: AsyncSession = Depends(get_db)):
-    # --- HARDCODED STUDENT DEMO ACCOUNTS ---
-    # Register Number as Key, with Name, Email, and Password
+    # Hardcoded Student Accounts
     demo_students = {
-        "11523040468": {"id": "1", "name": "Sharukhan", "email": "sharukhan@gmail.com", "pass": "sharu123"},
-        "11523040505": {"id": "2", "name": "Kishore", "email": "kishore@test.com", "pass": "kishore123"},
-        "11523040473": {"id": "3", "name": "Shyam", "email": "shyam@test.com", "pass": "shyam123"}
+        "11523040468": {"id": 1, "name": "Sharukhan", "pass": "sharu123"},
+        "11523040505": {"id": 2, "name": "Kishore", "pass": "kishore123"},
+        "11523040473": {"id": 3, "name": "Shyam", "pass": "shyam123"}
     }
 
-    reg = data.register_number
+    reg = str(data.register_number)
     if reg in demo_students and data.password == demo_students[reg]["pass"]:
         user_info = demo_students[reg]
         
-        # Generate real JWT tokens so the rest of the app (Menu/Orders) works!
-        access_token = utils.create_access_token({"sub": user_info["id"], "role": "student"})
-        refresh_token = utils.create_refresh_token({"sub": user_info["id"], "role": "student"})
+        # Create real tokens using the ID
+        access_token = utils.create_access_token({"sub": str(user_info["id"]), "role": "student"})
+        refresh_token = utils.create_refresh_token({"sub": str(user_info["id"]), "role": "student"})
         
-        # Save to redis so logout/refresh functionality remains active
+        # Store in Redis so the session is "Real"
         redis_client.set(f"refresh:{user_info['id']}", refresh_token, ex=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
 
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "role": "student",
-            "user_id": user_info["id"],
+            "user_id": str(user_info["id"]),
             "name": user_info["name"],
             "must_change_password": False
         }
@@ -167,34 +166,33 @@ async def login(data: schemas.UserLogin, db: AsyncSession = Depends(get_db)):
 
 @router.post("/vendor/login", response_model=schemas.TokenResponse)
 async def vendor_login(data: schemas.VendorLogin, db: AsyncSession = Depends(get_db)):
-    # --- HARDCODED VENDOR DEMO ACCOUNTS ---
-    # Mobile Number as Key, with Business Name and Password
+    # Hardcoded Vendor Accounts
     demo_vendors = {
-        "9999999999": {"id": "101", "name": "Dimora Central", "pass": "dimora123"},
-        "8888888888": {"id": "102", "name": "Reenu Food Court", "pass": "reenu123"},
-        "7777777777": {"id": "103", "name": "Bhojan Express", "pass": "bhojan123"}
+        "9999999999": {"id": 101, "name": "Dimora Central", "pass": "dimora123"},
+        "8888888888": {"id": 102, "name": "Reenu Food Court", "pass": "reenu123"},
+        "7777777777": {"id": 103, "name": "Bhojan Express", "pass": "bhojan123"}
     }
 
-    phone = data.phone
+    phone = str(data.phone)
     if phone in demo_vendors and data.password == demo_vendors[phone]["pass"]:
-        vendor_info = demo_vendors[phone]
+        v_info = demo_vendors[phone]
         
-        access_token = utils.create_access_token({"sub": vendor_info["id"], "role": "vendor"})
-        refresh_token = utils.create_refresh_token({"sub": vendor_info["id"], "role": "vendor"})
+        access_token = utils.create_access_token({"sub": str(v_info["id"]), "role": "vendor"})
+        refresh_token = utils.create_refresh_token({"sub": str(v_info["id"]), "role": "vendor"})
         
-        redis_client.set(f"refresh:{vendor_info['id']}", refresh_token, ex=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
+        redis_client.set(f"refresh:{v_info['id']}", refresh_token, ex=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
 
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "role": "vendor",
-            "user_id": vendor_info["id"],
-            "name": vendor_info["name"],
+            "user_id": str(v_info["id"]),
+            "name": v_info["name"],
             "must_change_password": False
         }
         
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect phone number or password.")
-
+    
 @router.post("/change-password")
 async def change_password(data: schemas.ChangePassword, current_user = Depends(get_current_user_or_vendor), db: AsyncSession = Depends(get_db)):
     if hasattr(current_user, 'user'): # If it's a vendor object
