@@ -25,7 +25,7 @@ export default function VendorChangePasswordPage() {
     setError('');
     
     try {
-      await authService.vendorChangePassword(oldPassword, newPassword);
+      await authService.changePassword(newPassword);
       setSuccess('Password updated! Loading dashboard...');
       setTimeout(() => {
         completedPasswordChange();
@@ -54,29 +54,12 @@ export default function VendorChangePasswordPage() {
         </div>
         
         <h2 className="auth-title">Welcome! Set Your Password 👋</h2>
-        <p className="auth-subtitle">Your account was created by admin. Set your own secure password to continue.</p>
+        <p className="auth-subtitle">Your account requires you to set your own secure password to continue.</p>
         
         {error && <div className="error-box">{error}</div>}
         {success && <div className="success-box">{success}</div>}
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Old Password</label>
-            <div className="input-wrapper">
-              <input 
-                type={showOld ? "text" : "password"} 
-                className="form-input" 
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                disabled={loading}
-                required
-              />
-              <button type="button" className="input-eye" onClick={() => setShowOld(!showOld)}>
-                {showOld ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            <div className="field-hint">Use the temporary password given by your admin</div>
-          </div>
           
           <div className="form-group">
             <label className="form-label">New Password</label>

@@ -13,6 +13,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     student_profile = relationship("Student", back_populates="user", uselist=False)

@@ -75,6 +75,10 @@ export const vendorChangePassword = (old_password, new_password) => {
   return api.post('/api/auth/vendor/change-password', { old_password, new_password });
 };
 
+export const changePassword = (new_password) => {
+  return api.post('/api/auth/change-password', { new_password });
+};
+
 export const logout = async () => {
   try {
     await api.post('/api/auth/logout');

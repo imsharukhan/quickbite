@@ -14,7 +14,8 @@ async def create_user(db: AsyncSession, data):
         email=data.email,
         hashed_password=hash_password(data.password),
         role=data.role,
-        is_verified=False if data.email else True
+        is_verified=False if data.email else True,
+        must_change_password=False
     )
     db.add(new_user)
     await db.flush()

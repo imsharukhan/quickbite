@@ -41,9 +41,23 @@ async def register(data: schemas.StudentRegister, background_tasks: BackgroundTa
         redis_client.set(f"otp:{data.register_number}", otp, ex=600)
         increment_otp_count(data.register_number)
         background_tasks.add_task(service.send_otp_email, data.email, data.name, otp, "verify")
+        # Return requires_otp if needed, but we will return it with the token too if the frontend needs it.
         return {"message": "User registered successfully. OTP sent.", "user_id": str(user.id), "requires_otp": True}
     
-    return {"message": "User registered successfully.", "user_id": str(user.id), "requires_otp": False}
+    access_token = utils.create_access_token({"sub": str(user.id), "role": user.role})
+    refresh_token = utils.create_refresh_token({"sub": str(user.id), "role": user.role})
+    redis_client.set(f"refresh:{user.id}", refresh_token, ex=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
+
+    return {
+        "message": "User registered successfully.",
+        "requires_otp": False,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "role": user.role,
+        "user_id": str(user.id),
+        "name": user.student_profile.name if user.student_profile else "",
+        "must_change_password": getattr(user, 'must_change_password', False)
+    }
 
 @router.post("/verify-otp")
 async def verify_otp(data: schemas.VerifyOTP, db: AsyncSession = Depends(get_db)):
@@ -56,8 +70,22 @@ async def verify_otp(data: schemas.VerifyOTP, db: AsyncSession = Depends(get_db)
     if str(stored_otp) != str(data.otp):
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
+    user = await service.get_user_by_register_number(db, data.register_number)
     await service.mark_user_verified(db, data.register_number)
     redis_client.delete(key)
+    if user:
+        access_token = utils.create_access_token({"sub": str(user.id), "role": user.role})
+        refresh_token = utils.create_refresh_token({"sub": str(user.id), "role": user.role})
+        redis_client.set(f"refresh:{user.id}", refresh_token, ex=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600)
+        return {
+            "message": "Email verified successfully",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "role": user.role,
+            "user_id": str(user.id),
+            "name": user.student_profile.name if user.student_profile else "",
+            "must_change_password": getattr(user, 'must_change_password', False)
+        }
     return {"message": "Email verified successfully"}
 
 @router.post("/resend-otp")
@@ -127,7 +155,7 @@ async def login(data: schemas.UserLogin, db: AsyncSession = Depends(get_db)):
         "role": user.role,
         "user_id": str(user.id),
         "name": user.student_profile.name if user.student_profile else "",
-        "must_change_password": False
+        "must_change_password": getattr(user, 'must_change_password', True)
     }
 
 @router.post("/vendor/login", response_model=schemas.TokenResponse)
@@ -150,8 +178,20 @@ async def vendor_login(data: schemas.VendorLogin, db: AsyncSession = Depends(get
         "role": "vendor",
         "user_id": str(vendor.user.id),
         "name": vendor.business_name,
-        "must_change_password": vendor.must_change_password
+        "must_change_password": getattr(vendor.user, 'must_change_password', True)
     }
+
+@router.post("/change-password")
+async def change_password(data: schemas.ChangePassword, current_user = Depends(get_current_user_or_vendor), db: AsyncSession = Depends(get_db)):
+    if hasattr(current_user, 'user'): # If it's a vendor object
+        target_user = current_user.user
+    else:
+        target_user = current_user
+        
+    target_user.hashed_password = utils.hash_password(data.new_password)
+    target_user.must_change_password = False
+    await db.commit()
+    return {"message": "Password updated successfully"}
 
 @router.post("/vendor/change-password")
 async def vendor_change_password(data: schemas.VendorChangePassword, current_vendor = Depends(get_current_vendor), db: AsyncSession = Depends(get_db)):

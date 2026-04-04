@@ -179,7 +179,7 @@ export default function HomePage({ navigate }) {
               🟢 Open Now <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.85rem' }}>({openOutlets.length})</span>
             </h2>
           </div>
-          <div className="outlet-grid" style={{ marginBottom: '28px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{ marginBottom: '28px' }}>
             {openOutlets.map(o => (
               <OutletCard key={o.id} outlet={o} onClick={() => navigate('menu', o)} />
             ))}
@@ -195,7 +195,7 @@ export default function HomePage({ navigate }) {
               🔴 Closed <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.85rem' }}>({closedOutlets.length})</span>
             </h2>
           </div>
-          <div className="outlet-grid" style={{ marginBottom: '28px', opacity: 0.7 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style={{ marginBottom: '28px', opacity: 0.7 }}>
             {closedOutlets.map(o => (
               <OutletCard key={o.id} outlet={o} onClick={() => navigate('menu', o)} />
             ))}
@@ -208,28 +208,50 @@ export default function HomePage({ navigate }) {
 }
 
 function OutletCard({ outlet, onClick }) {
-  const emoji = getCuisineEmoji(outlet.cuisine);
   const rating = outlet.rating ? parseFloat(outlet.rating).toFixed(1) : '—';
 
   return (
-    <div className="outlet-card" onClick={onClick}>
-      <div className="outlet-card-image">
-        <span style={{ fontSize: '2.8rem' }}>{emoji}</span>
+    <div 
+      className="bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1" 
+      onClick={onClick}
+      style={{ border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column' }}
+    >
+      <div className="aspect-video w-full overflow-hidden relative" style={{ backgroundColor: 'var(--primary)' }}>
+        {outlet.image_url ? (
+          <img 
+            src={outlet.image_url} 
+            alt={outlet.name} 
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white" style={{ fontSize: '3rem', fontWeight: 'bold' }}>
+            {outlet.name.charAt(0)}
+          </div>
+        )}
         {!outlet.is_open && (
-          <div className="outlet-closed-badge">Closed</div>
+           <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, backdropFilter: 'blur(4px)' }}>
+             Closed
+           </div>
         )}
         {outlet.rating >= 4.5 && outlet.is_open && (
-          <div className="outlet-featured-badge">⭐ Top Rated</div>
+           <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', color: '#000', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+             ⭐ Top Rated
+           </div>
         )}
       </div>
-      <div className="outlet-card-body">
-        <h3>{outlet.name}</h3>
-        <p>{outlet.cuisine || 'Campus Canteen'}</p>
-        <div className="outlet-card-meta">
-          <span className="rating">⭐ {rating}</span>
-          <span>🕐 {outlet.opening_time ? `${formatTime(outlet.opening_time)} – ${formatTime(outlet.closing_time)}` : 'See timings'}</span>
-          <span style={{ marginLeft: 'auto', color: outlet.is_open ? 'var(--green)' : 'var(--red)', fontWeight: 600, fontSize: '0.75rem' }}>
-            {outlet.is_open ? '● Open' : '● Closed'}
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}>{outlet.name}</h3>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '16px' }}>{outlet.description || outlet.cuisine || 'Campus Canteen'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
+          <span style={{ fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+            <span style={{ color: '#FFB800' }}>⭐</span> {rating}
+          </span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            🕐 {outlet.opening_time ? `${formatTime(outlet.opening_time)} – ${formatTime(outlet.closing_time)}` : 'Timings'}
+          </span>
+          <span style={{ color: outlet.is_open ? 'var(--green)' : 'var(--red)', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: outlet.is_open ? 'var(--green)' : 'var(--red)' }}></span>
+            {outlet.is_open ? 'Open' : 'Closed'}
           </span>
         </div>
       </div>

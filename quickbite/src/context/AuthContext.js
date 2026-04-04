@@ -107,11 +107,25 @@ export function AuthProvider({ children }) {
 
   const registerUser = async (name, register_number, email, password) => {
     const res = await authService.register(name, register_number, email, password);
+    if (res.data.access_token) {
+      authService.saveAuthData(res.data);
+      setUser({ id: res.data.user_id, name: res.data.name, role: res.data.role });
+      setRole(res.data.role);
+      setIsLoggedIn(true);
+      setMustChangePassword(res.data.must_change_password || false);
+    }
     return res.data;
   };
 
   const verifyOTP = async (register_number, otp) => {
     const res = await authService.verifyOTP(register_number, otp);
+    if (res.data.access_token) {
+      authService.saveAuthData(res.data);
+      setUser({ id: res.data.user_id, name: res.data.name, role: res.data.role });
+      setRole(res.data.role);
+      setIsLoggedIn(true);
+      setMustChangePassword(res.data.must_change_password || false);
+    }
     return res.data;
   };
 

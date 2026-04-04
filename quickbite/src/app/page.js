@@ -96,7 +96,7 @@ export default function Page() {
     return <LoginPage navigate={setAuthPage} />;
   }
 
-  if (isLoggedIn && role === 'vendor' && mustChangePassword) {
+  if (isLoggedIn && role !== 'student' && mustChangePassword) {
     return <VendorChangePasswordPage />;
   }
 

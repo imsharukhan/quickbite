@@ -46,8 +46,8 @@ export default function RegisterPage({ navigate }) {
         setStep(2);
         setTimer(60);
       } else {
-        setSuccess('Account created! Redirecting to login...');
-        setTimeout(() => navigate('login'), 2000);
+        setSuccess('Account created! Loading dashboard...');
+        // We do not navigate manually, Context will throw App to Home page instantly
       }
     } catch (err) {
       const detail = err.response?.data?.detail;
@@ -69,8 +69,7 @@ export default function RegisterPage({ navigate }) {
     setError('');
     try {
       await verifyOTP(regNo, code);
-      setSuccess('Email verified! Redirecting to login...');
-      setTimeout(() => navigate('login'), 2000);
+      setSuccess('Email verified! Loading dashboard...');
     }  catch (err) {
       const detail = err.response?.data?.detail;
       if (Array.isArray(detail)) {

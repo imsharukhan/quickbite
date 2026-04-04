@@ -68,6 +68,16 @@ class ResetPassword(BaseModel):
             raise ValueError("Password must be at least 6 characters")
         return v
 
+class ChangePassword(BaseModel):
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_length(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        return v
+
 class VendorChangePassword(BaseModel):
     old_password: str
     new_password: str
