@@ -151,13 +151,18 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="QuickBite API", lifespan=lifespan)
 
 # --- THE CORS FIX IS RIGHT HERE ---
+# --- THE PRECISE CORS FIX ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # This is the "Open Door" setting
+    allow_origins=[
+        "https://quickbitefinal.vercel.app", 
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# -----------------------------
 # ----------------------------------
 
 @app.get("/")
