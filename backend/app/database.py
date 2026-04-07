@@ -15,6 +15,7 @@ if final_db_url:
 
 engine = create_async_engine(
     final_db_url,  # <--- WE USE THE FIXED URL HERE
+    connect_args={"statement_cache_size": 0},
     pool_size=5,
     max_overflow=10,
     pool_recycle=300,
